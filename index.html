@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Physik-Spiel Prototyp – 5er-Linien (Magnetismus) v4</title>
+  <style>
+    :root{
+      --panel: rgba(17,24,39,.92);
+      --border: rgba(148,163,184,.22);
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --shadow: 0 22px 70px rgba(0,0,0,.65);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+    body{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:12px;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(56,189,248,.18), transparent 55%),
+        radial-gradient(circle at 85% 15%, rgba(34,197,94,.12), transparent 58%),
+        radial-gradient(circle at 80% 90%, rgba(239,68,68,.14), transparent 58%),
+        linear-gradient(180deg, #0b1220, #020617);
+      color:var(--text);
+      overflow:hidden;
+    }
+    .app{
+      width:min(460px, 100%);
+      height:min(860px, 100dvh);
+      background: var(--panel);
+      border:1px solid var(--border);
+      border-radius:22px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .top{
+      padding:12px 12px 10px;
+      border-bottom:1px solid rgba(148,163,184,.16);
+    }
+    .brand{font-size:.75rem; letter-spacing:.18em; text-transform:uppercase; color:rgba(148,163,184,.95);}
+    h1{font-size:1.1rem; margin-top:4px; font-weight:900;}
+    .sub{margin-top:6px; color:var(--muted); font-size:.90rem; line-height:1.35;}
+    .wordRow{
+      margin-top:10px;
+      display:flex;
+      gap:6px;
+      justify-content:center;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .letter{
+      width:24px; height:24px;
+      border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900;
+      background: rgba(2,6,23,.40);
+      border:1px solid rgba(148,163,184,.18);
+      color: rgba(229,231,235,.9);
+    }
+    .letter.on{
+      background: linear-gradient(135deg, rgba(56,189,248,.95), rgba(251,191,36,.95));
+      border-color: rgba(248,250,252,.55);
+      color:#0b1220;
+      box-shadow: 0 10px 30px rgba(56,189,248,.18);
+    }
+    .wordBtn{
+      border:none;
+      border-radius:999px;
+      padding:.48rem .8rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      background: linear-gradient(135deg, rgba(251,191,36,.95), rgba(56,189,248,.95));
+      color:#0b1220;
+      box-shadow: 0 14px 40px rgba(56,189,248,.18);
+      cursor:pointer;
+    }
+
+    .game{
+      padding:10px 12px 12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      flex:1;
+      min-height:0;
+    }
+    .hud{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .pill{
+      border:1px solid rgba(148,163,184,.22);
+      background: rgba(2,6,23,.34);
+      border-radius:999px;
+      padding:.30rem .6rem;
+      font-size:.88rem;
+      color: rgba(229,231,235,.95);
+      display:inline-flex;
+      gap:.45rem;
+      align-items:center;
+      white-space:nowrap;
+    }
+    .pill b{color: rgba(251,191,36,.95)}
+
+    .gridWrap{
+      flex:1;
+      min-height:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px;
+      border-radius:18px;
+      background: rgba(2,6,23,.32);
+      border:1px solid rgba(148,163,184,.16);
+    }
+    canvas{
+      width:100%;
+      height:100%;
+      max-height: 56dvh;
+      display:block;
+      border-radius:14px;
+      background: rgba(15,23,42,.55);
+      border:1px solid rgba(148,163,184,.14);
+      touch-action: none;
+      outline:none;
+    }
+    .controls{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      align-items:center;
+      padding-top:2px;
+    }
+    .btn{
+      border:1px solid rgba(148,163,184,.25);
+      background: rgba(2,6,23,.35);
+      color: var(--text);
+      border-radius: 16px;
+      padding:.65rem .95rem;
+      font-weight:900;
+      cursor:pointer;
+      min-width: 76px;
+    }
+    .btn:active{transform: translateY(1px);}
+    .btn.primary{
+      border-color: rgba(248,250,252,.35);
+      background: linear-gradient(135deg, rgba(251,191,36,.92), rgba(56,189,248,.92));
+      color:#0b1220;
+      min-width: 110px;
+    }
+    .hint{
+      text-align:center;
+      color: var(--muted);
+      font-size:.86rem;
+      line-height:1.35;
+      padding-top:8px;
+    }
+
+    /* Start overlay */
+    .startOverlay{
+      position:fixed; inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      background: rgba(0,0,0,.55);
+      z-index: 50;
+    }
+    .startCard{
+      width:min(520px, 100%);
+      background: rgba(2,6,23,.92);
+      border:1px solid rgba(148,163,184,.28);
+      border-radius:22px;
+      box-shadow: var(--shadow);
+      padding:16px;
+      text-align:center;
+    }
+    .startCard h2{
+      margin:0 0 6px;
+      font-size:1.15rem;
+      font-weight:1000;
+    }
+    .startCard p{
+      margin:0 0 12px;
+      color: rgba(148,163,184,.95);
+      line-height:1.35;
+    }
+    .bigBtn{
+      border:none;
+      border-radius:999px;
+      padding:.75rem 1.1rem;
+      font-weight:1000;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      background: linear-gradient(135deg, rgba(251,191,36,.95), rgba(56,189,248,.95));
+      color:#0b1220;
+      cursor:pointer;
+    }
+
+    /* Modal */
+    .modalOverlay{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.62);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index:999;
+    }
+    .modalOverlay.show{display:flex;}
+    .modal{
+      width:min(520px, 100%);
+      background: rgba(2,6,23,.94);
+      border:1px solid rgba(148,163,184,.28);
+      border-radius:20px;
+      box-shadow: var(--shadow);
+      padding:14px;
+    }
+    .modal h2{
+      font-size:1.02rem;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color: rgba(148,163,184,.95);
+      margin-bottom:8px;
+    }
+    .q{
+      font-size:1.0rem;
+      font-weight:900;
+      line-height:1.45;
+      margin-bottom:10px;
+    }
+    .answers{display:grid; gap:10px;}
+    .ans{
+      width:100%;
+      text-align:left;
+      border-radius:16px;
+      padding:.72rem .82rem;
+      border:1px solid rgba(148,163,184,.22);
+      background: rgba(15,23,42,.45);
+      color: var(--text);
+      font-weight:900;
+      cursor:pointer;
+    }
+    .ans.good{border-color: rgba(34,197,94,.55); background: rgba(34,197,94,.10);}
+    .ans.bad{border-color: rgba(239,68,68,.55); background: rgba(239,68,68,.10);}
+    .modalFoot{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      color: rgba(229,231,235,.95);
+      font-weight:900;
+    }
+    .status.good{color: #22c55e;}
+    .status.bad{color: #ef4444;}
+    .closeBtn{
+      border:none;
+      border-radius:999px;
+      padding:.5rem .85rem;
+      font-weight:900;
+      background: rgba(148,163,184,.16);
+      color: var(--text);
+      cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="top">
+      <div class="brand">Physik App · Probespiel · 5er-Linien</div>
+      <h1>Level 1: Magnetismus</h1>
+      <div class="sub"><b>Regel:</b> 5 gleiche Blasen in einer Linie = richtig → <b>1 Buchstabe</b>. (Waagerecht & Senkrecht; Diagonal optional aktiviert.) Wenn <b>MAGNETISMUS</b> fertig ist, klickst du auf das Wort für die Frage.</div>
+      <div class="wordRow" id="wordRow"></div>
+    </div>
+
+    <div class="game">
+      <div class="hud">
+        <div class="pill">Buchstaben: <b id="rowsText">0</b>/11</div>
+        <div class="pill">Breite: <b>5</b></div>
+        <div class="pill">Linie: <b>5</b></div>
+      </div>
+
+      <div class="gridWrap">
+        <canvas id="cv" width="360" height="600" tabindex="0" aria-label="Spiel"></canvas>
+      </div>
+
+      <div class="controls" aria-label="Steuerung">
+        <button class="btn" id="leftBtn" type="button">◀</button>
+        <button class="btn primary" id="dropBtn" type="button">▼ Drop</button>
+        <button class="btn" id="rightBtn" type="button">▶</button>
+      </div>
+
+      <div class="hint">
+        Handy: <b>wischen</b> links/rechts, <b>tippen</b> = Drop. (Pfeiltasten sind optional – SuS brauchen sie nicht.)
+      </div>
+    </div>
+  </div>
+
+  <div class="startOverlay" id="startOverlay">
+    <div class="startCard">
+      <h2>Startbereit?</h2>
+      <p>Ziel: Sammle Buchstaben für <b>MAGNETISMUS</b> durch <b>5er-Linien</b> gleicher Blasen.</p>
+      <button class="bigBtn" id="startBtn" type="button">Start</button>
+    </div>
+  </div>
+
+  <div class="modalOverlay" id="modal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h2>MAGNETISMUS</h2>
+      <div class="q">Welche Aussage beschreibt Magnetismus am besten?</div>
+      <div class="answers" id="answers"></div>
+      <div class="modalFoot">
+        <div class="status" id="status">Wähle eine Antwort.</div>
+        <button class="closeBtn" id="closeBtn" type="button">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== Config ======
+    const COLS = 5;
+    const ROWS = 10;
+    const LINE = 5;
+    const TARGET = "MAGNETISMUS"; // 11
+    const ALLOW_DIAGONAL = true;  // you said: optional; set true for now
+
+    // bubble types (id matters for matching), some with symbols, some plain
+    const BUBBLES = [
+      {id:"N", label:"N", hue: 4},
+      {id:"S", label:"S", hue: 210},
+      {id:"M", label:"🧲", hue: 145},
+      {id:"P1", label:"", hue: 265},
+      {id:"P2", label:"", hue: 35},
+    ];
+
+    const QUESTIONS = {
+      answers: [
+        {t:"Magnetismus ist die Anziehung aller Metalle.", ok:false},
+        {t:"Magnetismus ist eine Kraftwirkung zwischen bestimmten Stoffen – auch ohne Berührung.", ok:true},
+        {t:"Magnetismus entsteht nur, wenn Strom fließt.", ok:false},
+        {t:"Magnetismus ist Reibung, die Wärme erzeugt.", ok:false},
+      ],
+      hint: "Wink: Denke an „Kräfte ohne Berührung“ und dass nicht alle Metalle angezogen werden."
+    };
+
+    // ====== DOM ======
+    const cv = document.getElementById("cv");
+    const ctx = cv.getContext("2d");
+    const rowsText = document.getElementById("rowsText");
+    const wordRow = document.getElementById("wordRow");
+
+    const startOverlay = document.getElementById("startOverlay");
+    const startBtn = document.getElementById("startBtn");
+
+    const modal = document.getElementById("modal");
+    const answersEl = document.getElementById("answers");
+    const statusEl = document.getElementById("status");
+    const closeBtn = document.getElementById("closeBtn");
+
+    // ====== State ======
+    let grid = Array.from({length: ROWS}, () => Array.from({length: COLS}, () => null));
+    let current = null;          // {r,c,bubble}
+    let letters = 0;             // letters collected
+    let pausedForQuestion = false;
+    let running = false;
+    let lastStep = 0;
+
+    // match animation state
+    let clearingCells = new Set(); // "r,c"
+    let clearUntilTs = 0;
+
+    function currentIntervalMs(){
+      // stable, not too fast; speed up slightly with progress
+      const base = 560;
+      const bonus = Math.min(220, letters * 16);
+      return Math.max(300, base - bonus);
+    }
+    function randBubble(){
+      return BUBBLES[Math.floor(Math.random()*BUBBLES.length)];
+    }
+
+    // ====== Word UI ======
+    function renderWord(){
+      wordRow.innerHTML = "";
+      for(let i=0;i<TARGET.length;i++){
+        const d = document.createElement("div");
+        d.className = "letter" + (i < letters ? " on" : "");
+        d.textContent = (i < letters) ? TARGET[i] : "";
+        wordRow.appendChild(d);
+      }
+      if(letters >= TARGET.length){
+        const b = document.createElement("button");
+        b.className = "wordBtn";
+        b.textContent = TARGET;
+        b.addEventListener("click", openQuestion);
+        wordRow.appendChild(b);
+      }
+      rowsText.textContent = String(letters);
+    }
+    renderWord();
+
+    // ====== Canvas sizing ======
+    function resizeCanvasToDisplay(){
+      const rect = cv.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const w = Math.floor(rect.width * dpr);
+      const h = Math.floor(rect.height * dpr);
+      if(cv.width !== w || cv.height !== h){
+        cv.width = w;
+        cv.height = h;
+      }
+    }
+    function cellSize(){
+      return Math.min(cv.width / COLS, cv.height / ROWS);
+    }
+
+    function drawGrid(){
+      const s = cellSize();
+      ctx.save();
+      ctx.globalAlpha = 0.20;
+      ctx.strokeStyle = "rgba(148,163,184,.25)";
+      for(let r=0;r<=ROWS;r++){
+        ctx.beginPath();
+        ctx.moveTo(0, r*s);
+        ctx.lineTo(COLS*s, r*s);
+        ctx.stroke();
+      }
+      for(let c=0;c<=COLS;c++){
+        ctx.beginPath();
+        ctx.moveTo(c*s, 0);
+        ctx.lineTo(c*s, ROWS*s);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawBubble(r,c,bubble,glow=1, flash=0){
+      const s = cellSize();
+      const x = c*s, y = r*s;
+      const cx = x + s/2, cy = y + s/2;
+      const radius = s*0.44;
+
+      ctx.save();
+      const alpha = 0.55*glow + flash*0.35;
+      ctx.shadowColor = `hsla(${bubble.hue}, 95%, 60%, ${alpha})`;
+      ctx.shadowBlur = 14 * glow + flash*22;
+
+      const g = ctx.createRadialGradient(cx - radius*0.35, cy - radius*0.35, radius*0.2, cx, cy, radius*1.1);
+      g.addColorStop(0, `hsla(${bubble.hue}, 95%, ${92 + flash*6}%, 1)`);
+      g.addColorStop(0.35, `hsla(${bubble.hue}, 92%, ${60 + flash*8}%, 1)`);
+      g.addColorStop(1, `hsla(${bubble.hue}, 92%, 38%, 1)`);
+
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI*2);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = "rgba(248,250,252,.35)";
+      ctx.lineWidth = Math.max(1, s*0.01);
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI*2);
+      ctx.stroke();
+
+      ctx.globalAlpha = 0.32 + flash*0.35;
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      ctx.arc(cx - radius*0.28, cy - radius*0.28, radius*0.22, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      if(bubble.label){
+        ctx.fillStyle = "rgba(2,6,23,.92)";
+        ctx.font = `900 ${Math.floor(s*0.34)}px system-ui`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(bubble.label, cx, cy+1);
+      }
+      ctx.restore();
+    }
+
+    function draw(ts=0){
+      resizeCanvasToDisplay();
+      ctx.clearRect(0,0,cv.width,cv.height);
+      drawGrid();
+
+      let flash = 0;
+      if(clearingCells.size){
+        flash = 0.35 + 0.35*Math.sin(ts/80);
+      }
+
+      for(let r=0;r<ROWS;r++){
+        for(let c=0;c<COLS;c++){
+          const b = grid[r][c];
+          if(!b) continue;
+          const key = `${r},${c}`;
+          const isClearing = clearingCells.has(key);
+          drawBubble(r,c,b, isClearing ? 1.35 : 0.85, isClearing ? flash : 0);
+        }
+      }
+      if(current){
+        drawBubble(current.r, current.c, current.bubble, 1.15, 0);
+      }
+    }
+
+    // ====== Mechanics ======
+    function spawn(){
+      const c = Math.floor(COLS/2);
+      if(grid[0][c]){
+        reset("Game Over – Neustart");
+        return;
+      }
+      current = {r:0, c, bubble: randBubble()};
+    }
+
+    function canMove(r,c){
+      return r>=0 && r<ROWS && c>=0 && c<COLS && grid[r][c] === null;
+    }
+
+    function tryMove(dx){
+      if(!running || !current || pausedForQuestion || clearingCells.size) return;
+      const nc = current.c + dx;
+      if(canMove(current.r, nc)){
+        current.c = nc;
+      }
+    }
+
+    function lockCurrent(){
+      grid[current.r][current.c] = current.bubble;
+      current = null;
+
+      const matches = findMatches();
+      if(matches.size){
+        clearingCells = matches;
+        clearUntilTs = performance.now() + 520;
+      }else{
+        if(!pausedForQuestion) spawn();
+      }
+    }
+
+    function stepDown(){
+      if(!running || !current || pausedForQuestion || clearingCells.size) return;
+      const nr = current.r + 1;
+      if(nr < ROWS && canMove(nr, current.c)){
+        current.r = nr;
+      }else{
+        lockCurrent();
+      }
+    }
+
+    function hardDrop(){
+      if(!running || !current || pausedForQuestion || clearingCells.size) return;
+      while(true){
+        const nr = current.r + 1;
+        if(nr < ROWS && canMove(nr, current.c)){
+          current.r = nr;
+        }else break;
+      }
+      lockCurrent();
+    }
+
+    // ====== Matching: 5 in a line ======
+    function findMatches(){
+      const marked = new Set();
+
+      // helper to mark a segment
+      function markCells(cells){
+        for(const [r,c] of cells){
+          marked.add(`${r},${c}`);
+        }
+      }
+
+      // horizontal
+      for(let r=0;r<ROWS;r++){
+        let run = [];
+        let lastId = null;
+        for(let c=0;c<COLS;c++){
+          const cell = grid[r][c];
+          const id = cell ? cell.id : null;
+          if(id && id === lastId){
+            run.push([r,c]);
+          }else{
+            if(run.length >= LINE) markCells(run);
+            run = id ? [[r,c]] : [];
+            lastId = id;
+          }
+        }
+        if(run.length >= LINE) markCells(run);
+      }
+
+      // vertical
+      for(let c=0;c<COLS;c++){
+        let run = [];
+        let lastId = null;
+        for(let r=0;r<ROWS;r++){
+          const cell = grid[r][c];
+          const id = cell ? cell.id : null;
+          if(id && id === lastId){
+            run.push([r,c]);
+          }else{
+            if(run.length >= LINE) markCells(run);
+            run = id ? [[r,c]] : [];
+            lastId = id;
+          }
+        }
+        if(run.length >= LINE) markCells(run);
+      }
+
+      if(ALLOW_DIAGONAL){
+        // diag down-right (\)
+        for(let startR=0; startR<ROWS; startR++){
+          let r=startR, c=0, run=[], lastId=null;
+          while(r<ROWS && c<COLS){
+            const cell = grid[r][c]; const id = cell ? cell.id : null;
+            if(id && id===lastId){ run.push([r,c]); }
+            else{
+              if(run.length>=LINE) markCells(run);
+              run = id ? [[r,c]] : [];
+              lastId = id;
+            }
+            r++; c++;
+          }
+          if(run.length>=LINE) markCells(run);
+        }
+        for(let startC=1; startC<COLS; startC++){
+          let r=0, c=startC, run=[], lastId=null;
+          while(r<ROWS && c<COLS){
+            const cell = grid[r][c]; const id = cell ? cell.id : null;
+            if(id && id===lastId){ run.push([r,c]); }
+            else{
+              if(run.length>=LINE) markCells(run);
+              run = id ? [[r,c]] : [];
+              lastId = id;
+            }
+            r++; c++;
+          }
+          if(run.length>=LINE) markCells(run);
+        }
+
+        // diag down-left (/)
+        for(let startR=0; startR<ROWS; startR++){
+          let r=startR, c=COLS-1, run=[], lastId=null;
+          while(r<ROWS && c>=0){
+            const cell = grid[r][c]; const id = cell ? cell.id : null;
+            if(id && id===lastId){ run.push([r,c]); }
+            else{
+              if(run.length>=LINE) markCells(run);
+              run = id ? [[r,c]] : [];
+              lastId = id;
+            }
+            r++; c--;
+          }
+          if(run.length>=LINE) markCells(run);
+        }
+        for(let startC=COLS-2; startC>=0; startC--){
+          let r=0, c=startC, run=[], lastId=null;
+          while(r<ROWS && c>=0){
+            const cell = grid[r][c]; const id = cell ? cell.id : null;
+            if(id && id===lastId){ run.push([r,c]); }
+            else{
+              if(run.length>=LINE) markCells(run);
+              run = id ? [[r,c]] : [];
+              lastId = id;
+            }
+            r++; c--;
+          }
+          if(run.length>=LINE) markCells(run);
+        }
+      }
+
+      return marked;
+    }
+
+    function applyClear(){
+      if(!clearingCells.size) return;
+
+      // Remove marked cells
+      for(const key of clearingCells){
+        const [rS,cS] = key.split(",");
+        const r = parseInt(rS,10), c = parseInt(cS,10);
+        grid[r][c] = null;
+      }
+
+      // Gravity: collapse each column down
+      for(let c=0;c<COLS;c++){
+        const stack = [];
+        for(let r=ROWS-1;r>=0;r--){
+          if(grid[r][c]) stack.push(grid[r][c]);
+        }
+        for(let r=ROWS-1;r>=0;r--){
+          grid[r][c] = stack[ROWS-1-r] || null;
+        }
+      }
+
+      // Award letters: 1 letter per cleared "line of 5" (approx)
+      // For simplicity: each 5 cleared cells = 1 letter (works well for prototype)
+      const gained = Math.max(1, Math.floor(clearingCells.size / LINE));
+      letters = Math.min(TARGET.length, letters + gained);
+      renderWord();
+
+      clearingCells = new Set();
+
+      if(letters >= TARGET.length){
+        pausedForQuestion = true;
+      }
+      if(!pausedForQuestion){
+        spawn();
+      }
+    }
+
+    // ====== Question ======
+    function openQuestion(){
+      if(letters < TARGET.length) return;
+      answersEl.innerHTML = "";
+      statusEl.textContent = "Wähle eine Antwort.";
+      statusEl.className = "status";
+      QUESTIONS.answers.forEach(a => {
+        const b = document.createElement("button");
+        b.className = "ans";
+        b.textContent = a.t;
+        b.type = "button";
+        b.addEventListener("click", () => grade(a.ok, b));
+        answersEl.appendChild(b);
+      });
+      modal.classList.add("show");
+    }
+    function grade(ok, btn){
+      [...answersEl.querySelectorAll("button")].forEach(x => x.disabled = true);
+      if(ok){
+        btn.classList.add("good");
+        statusEl.textContent = "✅ Richtig! Level abgeschlossen.";
+        statusEl.className = "status good";
+      }else{
+        btn.classList.add("bad");
+        statusEl.textContent = "❌ Falsch. " + QUESTIONS.hint;
+        statusEl.className = "status bad";
+        setTimeout(() => {
+          [...answersEl.querySelectorAll("button")].forEach(x => {
+            x.disabled = false;
+            x.classList.remove("bad","good");
+          });
+          statusEl.textContent = "Versuch’s nochmal.";
+          statusEl.className = "status";
+        }, 950);
+      }
+    }
+    closeBtn.addEventListener("click", () => modal.classList.remove("show"));
+
+    // ====== Controls ======
+    document.getElementById("leftBtn").addEventListener("click", () => tryMove(-1));
+    document.getElementById("rightBtn").addEventListener("click", () => tryMove(1));
+    document.getElementById("dropBtn").addEventListener("click", () => hardDrop());
+
+    // Touch: swipe L/R to move, tap to drop
+    let startX=0, startY=0, lastMoveTs=0;
+    cv.addEventListener("pointerdown", (e) => {
+      cv.setPointerCapture(e.pointerId);
+      startX = e.clientX;
+      startY = e.clientY;
+      lastMoveTs = performance.now();
+      cv.focus({preventScroll:true});
+    });
+    cv.addEventListener("pointermove", (e) => {
+      if(!running || !current || pausedForQuestion || clearingCells.size) return;
+      const dx = e.clientX - startX;
+      const now = performance.now();
+      if(Math.abs(dx) > 22 && now - lastMoveTs > 70){
+        tryMove(dx > 0 ? 1 : -1);
+        startX = e.clientX;
+        lastMoveTs = now;
+      }
+    });
+    cv.addEventListener("pointerup", (e) => {
+      const dx = Math.abs(e.clientX - startX);
+      const dy = Math.abs(e.clientY - startY);
+      if(dx < 10 && dy < 10){
+        hardDrop();
+      }
+    });
+
+    // Start button
+    startBtn.addEventListener("click", () => {
+      startOverlay.style.display = "none";
+      running = true;
+      cv.focus({preventScroll:true});
+    });
+
+    // Loop
+    function loop(ts){
+      if(running){
+        if(!current && !pausedForQuestion && !clearingCells.size) spawn();
+
+        if(clearingCells.size && performance.now() >= clearUntilTs){
+          applyClear();
+        }
+
+        const interval = currentIntervalMs();
+        if(ts - lastStep > interval && !pausedForQuestion && !clearingCells.size){
+          stepDown();
+          lastStep = ts;
+        }
+      }
+      draw(ts);
+      requestAnimationFrame(loop);
+    }
+
+    function reset(msg){
+      grid = Array.from({length: ROWS}, () => Array.from({length: COLS}, () => null));
+      current = null;
+      letters = 0;
+      pausedForQuestion = false;
+      clearingCells = new Set();
+      renderWord();
+      draw(performance.now());
+      if(msg) alert(msg);
+    }
+
+    window.addEventListener("resize", () => draw(performance.now()));
+    draw(performance.now());
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
