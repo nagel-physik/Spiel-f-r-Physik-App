@@ -104,7 +104,7 @@
   <div class="app">
     <div class="top">
       <div class="brand">Physik App · Probespiel · 5er-Linien</div>
-      <h1>Level 1: Magnetismus</h1>
+      <h1>Level 1</h1>
       <div class="sub"><b>Regel:</b> 5 gleiche Blasen in einer Linie = ✅ → <b>1 Buchstabe</b>. (Waagerecht + Senkrecht + Diagonal.)</div>
       <div class="wordRow" id="wordRow"></div>
     </div>
@@ -200,6 +200,7 @@
 
     let grid = Array.from({length: ROWS}, () => Array.from({length: COLS}, () => null));
     let current = null; // {col,row,displayY,bubble}
+    let desiredCol = null; // smooth target column
     let letters = 0;
     let running = false;
     let softDrop = false;
@@ -285,12 +286,14 @@
         return;
       }
       current = {col:c, row:0, displayY:0, bubble: randBubble()};
+      desiredCol = c;
     }
 
     function lockCurrent(){
       current.displayY = current.row;
       grid[current.row][current.col] = current.bubble;
       current = null;
+      desiredCol = null;
       sLock();
 
       const matches = findMatches();
@@ -316,14 +319,12 @@
     }
 
     function setColumnFromX(clientX){
+      // Set a desired column based on finger position (smooth movement handled in loop)
       if(!running || !current || pausedForQuestion || clearingCells.size) return;
       const rect = cv.getBoundingClientRect();
       const x = Math.max(0, Math.min(rect.width - 1, clientX - rect.left));
-      const target = Math.max(0, Math.min(COLS-1, Math.floor((x / rect.width) * COLS)));
-      while(current.col < target){
-        if(canOccupy(current.row, current.col + 1)){ current.col++; sMove(); }
-        else break;
-      }
+      desiredCol = Math.max(0, Math.min(COLS-1, Math.floor((x / rect.width) * COLS)));
+    }
       while(current.col > target){
         if(canOccupy(current.row, current.col - 1)){ current.col--; sMove(); }
         else break;
@@ -633,6 +634,20 @@
           if(performance.now() >= clearUntilTs) applyClear();
         }else if(!pausedForQuestion){
           if(!current) spawn();
+
+          // Smooth horizontal movement: at most 1 column per frame toward desiredCol
+          if(current && desiredCol !== null && desiredCol !== current.col){
+            const dir = Math.sign(desiredCol - current.col);
+            const next = current.col + dir;
+            if(canOccupy(current.row, next)){
+              current.col = next;
+              sMove();
+            }else{
+              // If blocked, stop chasing further in that direction
+              desiredCol = current.col;
+            }
+          }
+
           fallAccumulator += stepsPerSecond() * dt;
           while(fallAccumulator >= 1){
             fallAccumulator -= 1;
@@ -649,6 +664,7 @@
     function reset(msg){
       grid = Array.from({length: ROWS}, () => Array.from({length: COLS}, () => null));
       current = null;
+      desiredCol = null;
       letters = 0;
       softDrop = false;
       pausedForQuestion = false;
