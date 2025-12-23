@@ -326,11 +326,6 @@
       const x = Math.max(0, Math.min(rect.width - 1, clientX - rect.left));
       desiredCol = Math.max(0, Math.min(COLS-1, Math.floor((x / rect.width) * COLS)));
     }
-      while(current.col > target){
-        if(canOccupy(current.row, current.col - 1)){ current.col--; sMove(); }
-        else break;
-      }
-    }
 
     // ===== Match detection (>=5 in a row, v/h/diag) =====
     function findMatches(){
