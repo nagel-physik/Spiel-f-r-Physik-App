@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Physik-Spiel Prototyp – 5er-Linien (Magnetismus) v9</title>
+  <title>Physik-Spiel Prototyp – 5er-Linien (Magnetismus) v10</title>
   <style>
     :root{
       --panel: rgba(17,24,39,.92);
@@ -40,7 +40,8 @@
     }
     .letter.on{
       background: linear-gradient(135deg, rgba(56,189,248,.95), rgba(251,191,36,.95));
-      border-color: rgba(248,250,252,.55);color:#0b1220;box-shadow: 0 10px 30px rgba(56,189,248,.18);
+      border-color: rgba(248,250,252,.55);color:#0b1220;
+      box-shadow: 0 10px 30px rgba(56,189,248,.18);
     }
     .wordBtn{
       border:none;border-radius:999px;padding:.48rem .8rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;
@@ -83,6 +84,20 @@
       border-color: rgba(56,189,248,.55);
       box-shadow: 0 10px 28px rgba(56,189,248,.14);
     }
+
+    .modalOverlay{position:fixed; inset:0;background: rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;padding:16px;z-index:999;}
+    .modalOverlay.show{display:flex;}
+    .modal{width:min(520px, 100%);background: rgba(2,6,23,.94);border:1px solid rgba(148,163,184,.28);border-radius:20px;box-shadow: var(--shadow);padding:14px;}
+    .modal h2{font-size:1.02rem;letter-spacing:.12em;text-transform:uppercase;color: rgba(148,163,184,.95);margin-bottom:8px;}
+    .q{font-size:1.0rem;font-weight:900;line-height:1.45;margin-bottom:10px;}
+    .answers{display:grid; gap:10px;}
+    .ans{width:100%;text-align:left;border-radius:16px;padding:.72rem .82rem;border:1px solid rgba(148,163,184,.22);background: rgba(15,23,42,.45);color: var(--text);font-weight:900;cursor:pointer;}
+    .ans.good{border-color: rgba(34,197,94,.55);background: rgba(34,197,94,.10);}
+    .ans.bad{border-color: rgba(239,68,68,.55);background: rgba(239,68,68,.10);}
+    .modalFoot{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;color: rgba(229,231,235,.95);font-weight:900;}
+    .status.good{color: #22c55e;}
+    .status.bad{color: #ef4444;}
+    .closeBtn{border:none;border-radius:999px;padding:.5rem .85rem;font-weight:900;background: rgba(148,163,184,.16);color: var(--text);cursor:pointer;}
   </style>
 </head>
 <body>
@@ -127,8 +142,20 @@
         <button class="bigBtn" id="startBtn" type="button">Start</button>
       </div>
       <p style="margin-top:10px; font-size:.85rem; color: rgba(148,163,184,.95)">
-        Tipp: Wenn iOS stumm ist, hörst du nichts (Stumm-Schalter). Sonst klappt’s nach dem Start-Tap.
+        Tipp: iPhone stumm = kein Ton (Seitenschalter).
       </p>
+    </div>
+  </div>
+
+  <div class="modalOverlay" id="modal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h2>MAGNETISMUS</h2>
+      <div class="q">Welche Aussage beschreibt Magnetismus am besten?</div>
+      <div class="answers" id="answers"></div>
+      <div class="modalFoot">
+        <div class="status" id="status">Wähle eine Antwort.</div>
+        <button class="closeBtn" id="closeBtn" type="button">Schließen</button>
+      </div>
     </div>
   </div>
 
@@ -146,6 +173,16 @@
       {id:"PL2", icon:"",   hue: 265},
     ];
 
+    const QUESTIONS = {
+      answers: [
+        {t:"Magnetismus ist die Anziehung aller Metalle.", ok:false},
+        {t:"Magnetismus ist eine Kraftwirkung zwischen bestimmten Stoffen – auch ohne Berührung.", ok:true},
+        {t:"Magnetismus entsteht nur, wenn Strom fließt.", ok:false},
+        {t:"Magnetismus ist Reibung, die Wärme erzeugt.", ok:false},
+      ],
+      hint: "Wink: „Kräfte ohne Berührung“ und nicht alle Metalle werden angezogen."
+    };
+
     const cv = document.getElementById("cv");
     const ctx = cv.getContext("2d");
     const rowsText = document.getElementById("rowsText");
@@ -156,20 +193,24 @@
     const startBtn = document.getElementById("startBtn");
     const soundToggle = document.getElementById("soundToggle");
 
+    const modal = document.getElementById("modal");
+    const answersEl = document.getElementById("answers");
+    const statusEl = document.getElementById("status");
+    const closeBtn = document.getElementById("closeBtn");
+
     let grid = Array.from({length: ROWS}, () => Array.from({length: COLS}, () => null));
     let current = null; // {col,row,displayY,bubble}
     let letters = 0;
     let running = false;
     let softDrop = false;
+    let pausedForQuestion = false;
 
-    // clearing (kept minimal for prototype)
     let clearingCells = new Set();
     let clearUntilTs = 0;
 
-    // ===== Sound (simple WebAudio) =====
+    // ===== Sound =====
     let soundOn = true;
     let audioCtx = null;
-
     function ensureAudio(){
       if(!soundOn) return;
       if(!audioCtx){
@@ -185,16 +226,18 @@
       const t0 = audioCtx.currentTime;
       const osc = audioCtx.createOscillator();
       const g = audioCtx.createGain();
-      osc.type = type;
-      osc.frequency.value = freq;
+      osc.type = type; osc.frequency.value = freq;
       g.gain.setValueAtTime(gain, t0);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
       osc.connect(g); g.connect(audioCtx.destination);
       osc.start(t0); osc.stop(t0 + dur);
     }
-    const sMove = () => beep(620, 0.035, "triangle", 0.045);
-    const sDrop = () => beep(420, 0.06, "sine", 0.07);
-    const sLock = () => beep(300, 0.07, "square", 0.05);
+    const sMove  = () => beep(620, 0.035, "triangle", 0.045);
+    const sDrop  = () => beep(420, 0.06,  "sine",     0.07);
+    const sLock  = () => beep(300, 0.07,  "square",   0.05);
+    const sClear = () => beep(760, 0.10,  "sine",     0.085);
+    const sRight = () => beep(880, 0.08,  "sine",     0.10);
+    const sWrong = () => beep(180, 0.09,  "sawtooth", 0.06);
 
     soundToggle.addEventListener("click", () => {
       soundOn = !soundOn;
@@ -213,6 +256,13 @@
         d.textContent = (i < letters) ? TARGET[i] : "";
         wordRow.appendChild(d);
       }
+      if(letters >= TARGET.length){
+        const b = document.createElement("button");
+        b.className = "wordBtn";
+        b.textContent = TARGET;
+        b.addEventListener("click", openQuestion);
+        wordRow.appendChild(b);
+      }
       rowsText.textContent = String(letters);
     }
     renderWord();
@@ -230,21 +280,31 @@
 
     function spawn(){
       const c = Math.floor(COLS/2);
-      if(grid[0][c]){ reset("Game Over – Neustart"); return; }
+      if(grid[0][c] !== null){
+        reset("Game Over – Feld ist voll. Neustart!");
+        return;
+      }
       current = {col:c, row:0, displayY:0, bubble: randBubble()};
     }
 
     function lockCurrent(){
-      // snap to exact cell center before locking -> avoids visual "merge"
       current.displayY = current.row;
       grid[current.row][current.col] = current.bubble;
       current = null;
       sLock();
-      if(!clearingCells.size) spawn();
+
+      const matches = findMatches();
+      if(matches.size){
+        clearingCells = matches;
+        clearUntilTs = performance.now() + 520;
+        sClear();
+      }else{
+        if(!pausedForQuestion) spawn();
+      }
     }
 
     function hardDrop(){
-      if(!running || !current || clearingCells.size) return;
+      if(!running || !current || pausedForQuestion || clearingCells.size) return;
       while(true){
         const nr = current.row + 1;
         if(nr < ROWS && canOccupy(nr, current.col)) current.row = nr;
@@ -256,7 +316,7 @@
     }
 
     function setColumnFromX(clientX){
-      if(!running || !current || clearingCells.size) return;
+      if(!running || !current || pausedForQuestion || clearingCells.size) return;
       const rect = cv.getBoundingClientRect();
       const x = Math.max(0, Math.min(rect.width - 1, clientX - rect.left));
       const target = Math.max(0, Math.min(COLS-1, Math.floor((x / rect.width) * COLS)));
@@ -270,7 +330,136 @@
       }
     }
 
-    // ===== Drawing (smaller radius + reduced glow to prevent "merging" look) =====
+    // ===== Match detection (>=5 in a row, v/h/diag) =====
+    function findMatches(){
+      const marked = new Set();
+      const addRun = (run) => { for(const [r,c] of run) marked.add(r + "," + c); };
+
+      // horizontal
+      for(let r=0;r<ROWS;r++){
+        let run=[], last=null;
+        for(let c=0;c<COLS;c++){
+          const id = grid[r][c]?.id ?? null;
+          if(id && id===last) run.push([r,c]);
+          else{
+            if(run.length>=LINE) addRun(run);
+            run = id ? [[r,c]] : [];
+            last = id;
+          }
+        }
+        if(run.length>=LINE) addRun(run);
+      }
+
+      // vertical
+      for(let c=0;c<COLS;c++){
+        let run=[], last=null;
+        for(let r=0;r<ROWS;r++){
+          const id = grid[r][c]?.id ?? null;
+          if(id && id===last) run.push([r,c]);
+          else{
+            if(run.length>=LINE) addRun(run);
+            run = id ? [[r,c]] : [];
+            last = id;
+          }
+        }
+        if(run.length>=LINE) addRun(run);
+      }
+
+      if(ALLOW_DIAGONAL){
+        // diag down-right (\)
+        for(let sr=0; sr<ROWS; sr++){
+          let r=sr,c=0,run=[],last=null;
+          while(r<ROWS && c<COLS){
+            const id = grid[r][c]?.id ?? null;
+            if(id && id===last) run.push([r,c]);
+            else{
+              if(run.length>=LINE) addRun(run);
+              run = id ? [[r,c]] : [];
+              last = id;
+            }
+            r++; c++;
+          }
+          if(run.length>=LINE) addRun(run);
+        }
+        for(let sc=1; sc<COLS; sc++){
+          let r=0,c=sc,run=[],last=null;
+          while(r<ROWS && c<COLS){
+            const id = grid[r][c]?.id ?? null;
+            if(id && id===last) run.push([r,c]);
+            else{
+              if(run.length>=LINE) addRun(run);
+              run = id ? [[r,c]] : [];
+              last = id;
+            }
+            r++; c++;
+          }
+          if(run.length>=LINE) addRun(run);
+        }
+
+        // diag down-left (/)
+        for(let sr=0; sr<ROWS; sr++){
+          let r=sr,c=COLS-1,run=[],last=null;
+          while(r<ROWS && c>=0){
+            const id = grid[r][c]?.id ?? null;
+            if(id && id===last) run.push([r,c]);
+            else{
+              if(run.length>=LINE) addRun(run);
+              run = id ? [[r,c]] : [];
+              last = id;
+            }
+            r++; c--;
+          }
+          if(run.length>=LINE) addRun(run);
+        }
+        for(let sc=COLS-2; sc>=0; sc--){
+          let r=0,c=sc,run=[],last=null;
+          while(r<ROWS && c>=0){
+            const id = grid[r][c]?.id ?? null;
+            if(id && id===last) run.push([r,c]);
+            else{
+              if(run.length>=LINE) addRun(run);
+              run = id ? [[r,c]] : [];
+              last = id;
+            }
+            r++; c--;
+          }
+          if(run.length>=LINE) addRun(run);
+        }
+      }
+
+      return marked;
+    }
+
+    function applyClear(){
+      if(!clearingCells.size) return;
+
+      for(const key of clearingCells){
+        const [rS,cS] = key.split(",");
+        grid[+rS][+cS] = null;
+      }
+
+      // gravity
+      for(let c=0;c<COLS;c++){
+        const stack=[];
+        for(let r=ROWS-1;r>=0;r--) if(grid[r][c]) stack.push(grid[r][c]);
+        for(let r=ROWS-1;r>=0;r--) grid[r][c] = stack[ROWS-1-r] || null;
+      }
+
+      // letters: 1 per completed 5-run (approx by cells/5, at least 1)
+      const gained = Math.max(1, Math.floor(clearingCells.size / LINE));
+      letters = Math.min(TARGET.length, letters + gained);
+      renderWord();
+
+      clearingCells = new Set();
+
+      if(letters >= TARGET.length){
+        pausedForQuestion = true;
+      }else{
+        spawn();
+      }
+    }
+
+    // ===== Drawing (no merge look) =====
     function drawGrid(){
       const s = cellSize();
       ctx.save();
@@ -285,14 +474,15 @@
       ctx.restore();
     }
 
-    function drawBubbleAt(cx, cy, bubble, radius, glow=1){
+    function drawBubbleAt(cx, cy, bubble, radius, glow=1, flash=0){
       ctx.save();
-      ctx.shadowColor = `hsla(${bubble.hue}, 95%, 60%, ${0.35*glow})`;
-      ctx.shadowBlur = 10*glow;
+      const alpha = 0.35*glow + 0.35*flash;
+      ctx.shadowColor = `hsla(${bubble.hue}, 95%, 60%, ${alpha})`;
+      ctx.shadowBlur = 10*glow + 14*flash;
 
       const g = ctx.createRadialGradient(cx - radius*0.35, cy - radius*0.35, radius*0.2, cx, cy, radius*1.1);
-      g.addColorStop(0, `hsla(${bubble.hue}, 95%, 92%, 1)`);
-      g.addColorStop(0.35, `hsla(${bubble.hue}, 92%, 60%, 1)`);
+      g.addColorStop(0, `hsla(${bubble.hue}, 95%, ${92 + flash*6}%, 1)`);
+      g.addColorStop(0.35, `hsla(${bubble.hue}, 92%, ${60 + flash*10}%, 1)`);
       g.addColorStop(1, `hsla(${bubble.hue}, 92%, 36%, 1)`);
 
       ctx.fillStyle = g;
@@ -303,7 +493,7 @@
       ctx.lineWidth = Math.max(1, radius*0.06);
       ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2); ctx.stroke();
 
-      ctx.globalAlpha = 0.20;
+      ctx.globalAlpha = 0.20 + flash*0.25;
       ctx.fillStyle = "white";
       ctx.beginPath(); ctx.arc(cx - radius*0.28, cy - radius*0.28, radius*0.20, 0, Math.PI*2); ctx.fill();
       ctx.globalAlpha = 1;
@@ -318,30 +508,72 @@
       ctx.restore();
     }
 
-    function draw(){
+    function draw(ts=0){
       resizeCanvasToDisplay();
       ctx.clearRect(0,0,cv.width,cv.height);
 
       const s = cellSize();
-      const radius = s*0.38; // smaller -> visible gap -> no "merge" look
+      const radius = s*0.38;
 
       drawGrid();
+
+      const flash = clearingCells.size ? (0.35 + 0.35*Math.sin(ts/80)) : 0;
 
       for(let r=0;r<ROWS;r++){
         for(let c=0;c<COLS;c++){
           const b = grid[r][c];
           if(!b) continue;
-          drawBubbleAt(c*s + s/2, r*s + s/2, b, radius, 0.80);
+          const key = r + "," + c;
+          const isClearing = clearingCells.has(key);
+          drawBubbleAt(c*s + s/2, r*s + s/2, b, radius, 0.80, isClearing ? flash : 0);
         }
       }
 
       if(current){
-        // displayY approaches row, but never exceeds -> ensures it stays centered in its cell visually
         const lerp = 0.22;
         current.displayY = current.displayY + (current.row - current.displayY) * lerp;
-        drawBubbleAt(current.col*s + s/2, current.displayY*s + s/2, current.bubble, radius, 1.10);
+        drawBubbleAt(current.col*s + s/2, current.displayY*s + s/2, current.bubble, radius, 1.10, 0);
       }
     }
+
+    // ===== Question modal =====
+    function openQuestion(){
+      answersEl.innerHTML = "";
+      statusEl.textContent = "Wähle eine Antwort.";
+      statusEl.className = "status";
+      QUESTIONS.answers.forEach(a => {
+        const b = document.createElement("button");
+        b.className = "ans";
+        b.textContent = a.t;
+        b.type = "button";
+        b.addEventListener("click", () => grade(a.ok, b));
+        answersEl.appendChild(b);
+      });
+      modal.classList.add("show");
+    }
+    function grade(ok, btn){
+      [...answersEl.querySelectorAll("button")].forEach(x => x.disabled = true);
+      if(ok){
+        btn.classList.add("good");
+        statusEl.textContent = "✅ Richtig! Level abgeschlossen.";
+        statusEl.className = "status good";
+        sRight();
+      }else{
+        btn.classList.add("bad");
+        statusEl.textContent = "❌ Falsch. " + QUESTIONS.hint;
+        statusEl.className = "status bad";
+        sWrong();
+        setTimeout(() => {
+          [...answersEl.querySelectorAll("button")].forEach(x => {
+            x.disabled = false;
+            x.classList.remove("bad","good");
+          });
+          statusEl.textContent = "Versuch’s nochmal.";
+          statusEl.className = "status";
+        }, 950);
+      }
+    }
+    closeBtn.addEventListener("click", () => modal.classList.remove("show"));
 
     // ===== Input =====
     let startX=0, startY=0;
@@ -356,7 +588,7 @@
     });
 
     cv.addEventListener("pointermove", (e) => {
-      if(!running || !current) return;
+      if(!running || !current || pausedForQuestion || clearingCells.size) return;
       setColumnFromX(e.clientX);
       const dy = e.clientY - startY;
       softDrop = dy > 28;
@@ -397,15 +629,20 @@
       lastTs = ts;
 
       if(running){
-        if(!current) spawn();
-        fallAccumulator += stepsPerSecond() * dt;
-        while(fallAccumulator >= 1){
-          fallAccumulator -= 1;
-          fallStep();
-          if(!current) break;
+        if(clearingCells.size){
+          if(performance.now() >= clearUntilTs) applyClear();
+        }else if(!pausedForQuestion){
+          if(!current) spawn();
+          fallAccumulator += stepsPerSecond() * dt;
+          while(fallAccumulator >= 1){
+            fallAccumulator -= 1;
+            fallStep();
+            if(!current) break;
+          }
         }
       }
-      draw();
+
+      draw(ts);
       requestAnimationFrame(loop);
     }
 
@@ -414,7 +651,10 @@
       current = null;
       letters = 0;
       softDrop = false;
+      pausedForQuestion = false;
       fallAccumulator = 0;
+      clearingCells = new Set();
+      clearUntilTs = 0;
       renderWord();
       if(msg) alert(msg);
     }
