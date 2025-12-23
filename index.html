@@ -319,7 +319,8 @@
     }
 
     function setColumnFromX(clientX){
-      // Set a desired column based on finger position (smooth movement handled in loop)
+      // Set only the target column based on finger position.
+      // Actual movement happens smoothly in the main loop (max 1 column per frame).
       if(!running || !current || pausedForQuestion || clearingCells.size) return;
       const rect = cv.getBoundingClientRect();
       const x = Math.max(0, Math.min(rect.width - 1, clientX - rect.left));
@@ -643,7 +644,6 @@
               current.col = next;
               sMove();
             }else{
-              // If blocked, stop chasing further in that direction
               desiredCol = current.col;
             }
           }
