@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Physik-Spiel Prototyp – 5er-Linien (Magnetismus) v4</title>
+  <title>Physik-Spiel Prototyp – 5er-Linien (Magnetismus) v7</title>
   <style>
     :root{
       --panel: rgba(17,24,39,.92);
@@ -38,27 +38,15 @@
       display:flex;
       flex-direction:column;
     }
-    .top{
-      padding:12px 12px 10px;
-      border-bottom:1px solid rgba(148,163,184,.16);
-    }
+    .top{padding:12px 12px 10px;border-bottom:1px solid rgba(148,163,184,.16);}
     .brand{font-size:.75rem; letter-spacing:.18em; text-transform:uppercase; color:rgba(148,163,184,.95);}
     h1{font-size:1.1rem; margin-top:4px; font-weight:900;}
     .sub{margin-top:6px; color:var(--muted); font-size:.90rem; line-height:1.35;}
-    .wordRow{
-      margin-top:10px;
-      display:flex;
-      gap:6px;
-      justify-content:center;
-      align-items:center;
-      flex-wrap:wrap;
-    }
+    .wordRow{margin-top:10px;display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap;}
     .letter{
-      width:24px; height:24px;
-      border-radius:8px;
+      width:24px; height:24px;border-radius:8px;
       display:flex; align-items:center; justify-content:center;
-      font-weight:900;
-      background: rgba(2,6,23,.40);
+      font-weight:900;background: rgba(2,6,23,.40);
       border:1px solid rgba(148,163,184,.18);
       color: rgba(229,231,235,.9);
     }
@@ -69,209 +57,58 @@
       box-shadow: 0 10px 30px rgba(56,189,248,.18);
     }
     .wordBtn{
-      border:none;
-      border-radius:999px;
-      padding:.48rem .8rem;
-      font-weight:900;
-      letter-spacing:.08em;
-      text-transform:uppercase;
+      border:none;border-radius:999px;padding:.48rem .8rem;
+      font-weight:900;letter-spacing:.08em;text-transform:uppercase;
       background: linear-gradient(135deg, rgba(251,191,36,.95), rgba(56,189,248,.95));
-      color:#0b1220;
-      box-shadow: 0 14px 40px rgba(56,189,248,.18);
+      color:#0b1220;box-shadow: 0 14px 40px rgba(56,189,248,.18);
       cursor:pointer;
     }
 
-    .game{
-      padding:10px 12px 12px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      flex:1;
-      min-height:0;
-    }
-    .hud{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:space-between;
-    }
+    .game{padding:10px 12px 14px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;}
+    .hud{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
     .pill{
-      border:1px solid rgba(148,163,184,.22);
-      background: rgba(2,6,23,.34);
-      border-radius:999px;
-      padding:.30rem .6rem;
-      font-size:.88rem;
-      color: rgba(229,231,235,.95);
-      display:inline-flex;
-      gap:.45rem;
-      align-items:center;
-      white-space:nowrap;
+      border:1px solid rgba(148,163,184,.22);background: rgba(2,6,23,.34);
+      border-radius:999px;padding:.30rem .6rem;font-size:.88rem;
+      color: rgba(229,231,235,.95);display:inline-flex;gap:.45rem;align-items:center;white-space:nowrap;
     }
     .pill b{color: rgba(251,191,36,.95)}
 
     .gridWrap{
-      flex:1;
-      min-height:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:8px;
-      border-radius:18px;
-      background: rgba(2,6,23,.32);
+      flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
+      padding:8px;border-radius:18px;background: rgba(2,6,23,.32);
       border:1px solid rgba(148,163,184,.16);
     }
     canvas{
-      width:100%;
-      height:100%;
-      max-height: 56dvh;
-      display:block;
-      border-radius:14px;
-      background: rgba(15,23,42,.55);
+      width:100%;height:100%;max-height: 60dvh;display:block;
+      border-radius:14px;background: rgba(15,23,42,.55);
       border:1px solid rgba(148,163,184,.14);
-      touch-action: none;
-      outline:none;
-    }
-    .controls{
-      display:flex;
-      gap:10px;
-      justify-content:center;
-      align-items:center;
-      padding-top:2px;
-    }
-    .btn{
-      border:1px solid rgba(148,163,184,.25);
-      background: rgba(2,6,23,.35);
-      color: var(--text);
-      border-radius: 16px;
-      padding:.65rem .95rem;
-      font-weight:900;
-      cursor:pointer;
-      min-width: 76px;
-    }
-    .btn:active{transform: translateY(1px);}
-    .btn.primary{
-      border-color: rgba(248,250,252,.35);
-      background: linear-gradient(135deg, rgba(251,191,36,.92), rgba(56,189,248,.92));
-      color:#0b1220;
-      min-width: 110px;
-    }
-    .hint{
-      text-align:center;
-      color: var(--muted);
-      font-size:.86rem;
-      line-height:1.35;
-      padding-top:8px;
+      touch-action: none;outline:none;
     }
 
-    /* Start overlay */
-    .startOverlay{
-      position:fixed; inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:16px;
-      background: rgba(0,0,0,.55);
-      z-index: 50;
-    }
-    .startCard{
-      width:min(520px, 100%);
-      background: rgba(2,6,23,.92);
-      border:1px solid rgba(148,163,184,.28);
-      border-radius:22px;
-      box-shadow: var(--shadow);
-      padding:16px;
-      text-align:center;
-    }
-    .startCard h2{
-      margin:0 0 6px;
-      font-size:1.15rem;
-      font-weight:1000;
-    }
-    .startCard p{
-      margin:0 0 12px;
-      color: rgba(148,163,184,.95);
-      line-height:1.35;
-    }
-    .bigBtn{
-      border:none;
-      border-radius:999px;
-      padding:.75rem 1.1rem;
-      font-weight:1000;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      background: linear-gradient(135deg, rgba(251,191,36,.95), rgba(56,189,248,.95));
-      color:#0b1220;
-      cursor:pointer;
-    }
+    .hint{text-align:center;color: var(--muted);font-size:.92rem;line-height:1.35;padding-top:6px;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;}
+    .gestures{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;opacity:.95;}
+    .gesture{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid rgba(148,163,184,.20);background: rgba(2,6,23,.30);font-weight:900;color: rgba(229,231,235,.92);white-space:nowrap;}
+    .gesture .ic{width:26px;height:26px;border-radius:10px;display:flex;align-items:center;justify-content:center;background: rgba(148,163,184,.14);}
 
-    /* Modal */
-    .modalOverlay{
-      position:fixed; inset:0;
-      background: rgba(0,0,0,.62);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:16px;
-      z-index:999;
-    }
+    .startOverlay{position:fixed; inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background: rgba(0,0,0,.55);z-index: 50;}
+    .startCard{width:min(520px, 100%);background: rgba(2,6,23,.92);border:1px solid rgba(148,163,184,.28);border-radius:22px;box-shadow: var(--shadow);padding:16px;text-align:center;}
+    .startCard h2{margin:0 0 6px;font-size:1.15rem;font-weight:1000;}
+    .startCard p{margin:0 0 12px;color: rgba(148,163,184,.95);line-height:1.35;}
+    .bigBtn{border:none;border-radius:999px;padding:.75rem 1.1rem;font-weight:1000;letter-spacing:.08em;text-transform:uppercase;background: linear-gradient(135deg, rgba(251,191,36,.95), rgba(56,189,248,.95));color:#0b1220;cursor:pointer;}
+
+    .modalOverlay{position:fixed; inset:0;background: rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;padding:16px;z-index:999;}
     .modalOverlay.show{display:flex;}
-    .modal{
-      width:min(520px, 100%);
-      background: rgba(2,6,23,.94);
-      border:1px solid rgba(148,163,184,.28);
-      border-radius:20px;
-      box-shadow: var(--shadow);
-      padding:14px;
-    }
-    .modal h2{
-      font-size:1.02rem;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color: rgba(148,163,184,.95);
-      margin-bottom:8px;
-    }
-    .q{
-      font-size:1.0rem;
-      font-weight:900;
-      line-height:1.45;
-      margin-bottom:10px;
-    }
+    .modal{width:min(520px, 100%);background: rgba(2,6,23,.94);border:1px solid rgba(148,163,184,.28);border-radius:20px;box-shadow: var(--shadow);padding:14px;}
+    .modal h2{font-size:1.02rem;letter-spacing:.12em;text-transform:uppercase;color: rgba(148,163,184,.95);margin-bottom:8px;}
+    .q{font-size:1.0rem;font-weight:900;line-height:1.45;margin-bottom:10px;}
     .answers{display:grid; gap:10px;}
-    .ans{
-      width:100%;
-      text-align:left;
-      border-radius:16px;
-      padding:.72rem .82rem;
-      border:1px solid rgba(148,163,184,.22);
-      background: rgba(15,23,42,.45);
-      color: var(--text);
-      font-weight:900;
-      cursor:pointer;
-    }
-    .ans.good{border-color: rgba(34,197,94,.55); background: rgba(34,197,94,.10);}
-    .ans.bad{border-color: rgba(239,68,68,.55); background: rgba(239,68,68,.10);}
-    .modalFoot{
-      margin-top:12px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:space-between;
-      color: rgba(229,231,235,.95);
-      font-weight:900;
-    }
+    .ans{width:100%;text-align:left;border-radius:16px;padding:.72rem .82rem;border:1px solid rgba(148,163,184,.22);background: rgba(15,23,42,.45);color: var(--text);font-weight:900;cursor:pointer;}
+    .ans.good{border-color: rgba(34,197,94,.55);background: rgba(34,197,94,.10);}
+    .ans.bad{border-color: rgba(239,68,68,.55);background: rgba(239,68,68,.10);}
+    .modalFoot{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;color: rgba(229,231,235,.95);font-weight:900;}
     .status.good{color: #22c55e;}
     .status.bad{color: #ef4444;}
-    .closeBtn{
-      border:none;
-      border-radius:999px;
-      padding:.5rem .85rem;
-      font-weight:900;
-      background: rgba(148,163,184,.16);
-      color: var(--text);
-      cursor:pointer;
-    }
+    .closeBtn{border:none;border-radius:999px;padding:.5rem .85rem;font-weight:900;background: rgba(148,163,184,.16);color: var(--text);cursor:pointer;}
   </style>
 </head>
 <body>
@@ -279,29 +116,27 @@
     <div class="top">
       <div class="brand">Physik App · Probespiel · 5er-Linien</div>
       <h1>Level 1: Magnetismus</h1>
-      <div class="sub"><b>Regel:</b> 5 gleiche Blasen in einer Linie = richtig → <b>1 Buchstabe</b>. (Waagerecht & Senkrecht; Diagonal optional aktiviert.) Wenn <b>MAGNETISMUS</b> fertig ist, klickst du auf das Wort für die Frage.</div>
+      <div class="sub"><b>Regel:</b> 5 gleiche Blasen in einer Linie = ✅ → <b>1 Buchstabe</b>. (Waagerecht + Senkrecht + Diagonal.)</div>
       <div class="wordRow" id="wordRow"></div>
     </div>
 
     <div class="game">
       <div class="hud">
         <div class="pill">Buchstaben: <b id="rowsText">0</b>/11</div>
-        <div class="pill">Breite: <b>5</b></div>
+        <div class="pill">Spalten: <b id="colsText">8</b></div>
         <div class="pill">Linie: <b>5</b></div>
       </div>
 
       <div class="gridWrap">
-        <canvas id="cv" width="360" height="600" tabindex="0" aria-label="Spiel"></canvas>
-      </div>
-
-      <div class="controls" aria-label="Steuerung">
-        <button class="btn" id="leftBtn" type="button">◀</button>
-        <button class="btn primary" id="dropBtn" type="button">▼ Drop</button>
-        <button class="btn" id="rightBtn" type="button">▶</button>
+        <canvas id="cv" width="360" height="600" aria-label="Spiel"></canvas>
       </div>
 
       <div class="hint">
-        Handy: <b>wischen</b> links/rechts, <b>tippen</b> = Drop. (Pfeiltasten sind optional – SuS brauchen sie nicht.)
+        <div class="gestures">
+          <div class="gesture"><span class="ic">👈👉</span></div>
+          <div class="gesture"><span class="ic">👇</span></div>
+          <div class="gesture"><span class="ic">👆</span></div>
+        </div>
       </div>
     </div>
   </div>
@@ -309,7 +144,7 @@
   <div class="startOverlay" id="startOverlay">
     <div class="startCard">
       <h2>Startbereit?</h2>
-      <p>Ziel: Sammle Buchstaben für <b>MAGNETISMUS</b> durch <b>5er-Linien</b> gleicher Blasen.</p>
+      <p>Ziel: Sammle Buchstaben für <b>MAGNETISMUS</b> durch 5er-Linien gleicher Blasen.</p>
       <button class="bigBtn" id="startBtn" type="button">Start</button>
     </div>
   </div>
@@ -327,20 +162,20 @@
   </div>
 
   <script>
-    // ====== Config ======
-    const COLS = 5;
+    const COLS = 8;              // full width is usable (no dead space)
     const ROWS = 10;
     const LINE = 5;
-    const TARGET = "MAGNETISMUS"; // 11
-    const ALLOW_DIAGONAL = true;  // you said: optional; set true for now
+    const TARGET = "MAGNETISMUS";
+    const ALLOW_DIAGONAL = true;
 
-    // bubble types (id matters for matching), some with symbols, some plain
+    // No letters (cosmetic): simple physics icons + some plain bubbles
     const BUBBLES = [
-      {id:"N", label:"N", hue: 4},
-      {id:"S", label:"S", hue: 210},
-      {id:"M", label:"🧲", hue: 145},
-      {id:"P1", label:"", hue: 265},
-      {id:"P2", label:"", hue: 35},
+      {id:"MAG", icon:"🧲", hue: 145},
+      {id:"ELE", icon:"⚡", hue: 48},
+      {id:"LIG", icon:"💡", hue: 35},
+      {id:"BAT", icon:"🔋", hue: 115},
+      {id:"PL1", icon:"",   hue: 210},
+      {id:"PL2", icon:"",   hue: 265},
     ];
 
     const QUESTIONS = {
@@ -350,13 +185,13 @@
         {t:"Magnetismus entsteht nur, wenn Strom fließt.", ok:false},
         {t:"Magnetismus ist Reibung, die Wärme erzeugt.", ok:false},
       ],
-      hint: "Wink: Denke an „Kräfte ohne Berührung“ und dass nicht alle Metalle angezogen werden."
+      hint: "Wink: „Kräfte ohne Berührung“ und nicht alle Metalle werden angezogen."
     };
 
-    // ====== DOM ======
     const cv = document.getElementById("cv");
     const ctx = cv.getContext("2d");
     const rowsText = document.getElementById("rowsText");
+    document.getElementById("colsText").textContent = String(COLS);
     const wordRow = document.getElementById("wordRow");
 
     const startOverlay = document.getElementById("startOverlay");
@@ -367,29 +202,25 @@
     const statusEl = document.getElementById("status");
     const closeBtn = document.getElementById("closeBtn");
 
-    // ====== State ======
     let grid = Array.from({length: ROWS}, () => Array.from({length: COLS}, () => null));
-    let current = null;          // {r,c,bubble}
-    let letters = 0;             // letters collected
+
+    // current piece uses smooth y (float rows) -> smooth fall
+    let current = null; // {col:int, y:float, bubble}
+    let letters = 0;
     let pausedForQuestion = false;
     let running = false;
-    let lastStep = 0;
 
-    // match animation state
-    let clearingCells = new Set(); // "r,c"
+    let softDrop = false;
+    let lastTs = 0;
+
+    // clearing highlight
+    let clearingCells = new Set();
     let clearUntilTs = 0;
 
-    function currentIntervalMs(){
-      // stable, not too fast; speed up slightly with progress
-      const base = 560;
-      const bonus = Math.min(220, letters * 16);
-      return Math.max(300, base - bonus);
-    }
     function randBubble(){
       return BUBBLES[Math.floor(Math.random()*BUBBLES.length)];
     }
 
-    // ====== Word UI ======
     function renderWord(){
       wordRow.innerHTML = "";
       for(let i=0;i<TARGET.length;i++){
@@ -409,7 +240,6 @@
     }
     renderWord();
 
-    // ====== Canvas sizing ======
     function resizeCanvasToDisplay(){
       const rect = cv.getBoundingClientRect();
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -424,119 +254,19 @@
       return Math.min(cv.width / COLS, cv.height / ROWS);
     }
 
-    function drawGrid(){
-      const s = cellSize();
-      ctx.save();
-      ctx.globalAlpha = 0.20;
-      ctx.strokeStyle = "rgba(148,163,184,.25)";
-      for(let r=0;r<=ROWS;r++){
-        ctx.beginPath();
-        ctx.moveTo(0, r*s);
-        ctx.lineTo(COLS*s, r*s);
-        ctx.stroke();
-      }
-      for(let c=0;c<=COLS;c++){
-        ctx.beginPath();
-        ctx.moveTo(c*s, 0);
-        ctx.lineTo(c*s, ROWS*s);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    function drawBubble(r,c,bubble,glow=1, flash=0){
-      const s = cellSize();
-      const x = c*s, y = r*s;
-      const cx = x + s/2, cy = y + s/2;
-      const radius = s*0.44;
-
-      ctx.save();
-      const alpha = 0.55*glow + flash*0.35;
-      ctx.shadowColor = `hsla(${bubble.hue}, 95%, 60%, ${alpha})`;
-      ctx.shadowBlur = 14 * glow + flash*22;
-
-      const g = ctx.createRadialGradient(cx - radius*0.35, cy - radius*0.35, radius*0.2, cx, cy, radius*1.1);
-      g.addColorStop(0, `hsla(${bubble.hue}, 95%, ${92 + flash*6}%, 1)`);
-      g.addColorStop(0.35, `hsla(${bubble.hue}, 92%, ${60 + flash*8}%, 1)`);
-      g.addColorStop(1, `hsla(${bubble.hue}, 92%, 38%, 1)`);
-
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI*2);
-      ctx.fill();
-
-      ctx.shadowBlur = 0;
-      ctx.strokeStyle = "rgba(248,250,252,.35)";
-      ctx.lineWidth = Math.max(1, s*0.01);
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI*2);
-      ctx.stroke();
-
-      ctx.globalAlpha = 0.32 + flash*0.35;
-      ctx.fillStyle = "white";
-      ctx.beginPath();
-      ctx.arc(cx - radius*0.28, cy - radius*0.28, radius*0.22, 0, Math.PI*2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-
-      if(bubble.label){
-        ctx.fillStyle = "rgba(2,6,23,.92)";
-        ctx.font = `900 ${Math.floor(s*0.34)}px system-ui`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(bubble.label, cx, cy+1);
-      }
-      ctx.restore();
-    }
-
-    function draw(ts=0){
-      resizeCanvasToDisplay();
-      ctx.clearRect(0,0,cv.width,cv.height);
-      drawGrid();
-
-      let flash = 0;
-      if(clearingCells.size){
-        flash = 0.35 + 0.35*Math.sin(ts/80);
-      }
-
-      for(let r=0;r<ROWS;r++){
-        for(let c=0;c<COLS;c++){
-          const b = grid[r][c];
-          if(!b) continue;
-          const key = `${r},${c}`;
-          const isClearing = clearingCells.has(key);
-          drawBubble(r,c,b, isClearing ? 1.35 : 0.85, isClearing ? flash : 0);
-        }
-      }
-      if(current){
-        drawBubble(current.r, current.c, current.bubble, 1.15, 0);
-      }
-    }
-
-    // ====== Mechanics ======
-    function spawn(){
-      const c = Math.floor(COLS/2);
-      if(grid[0][c]){
-        reset("Game Over – Neustart");
-        return;
-      }
-      current = {r:0, c, bubble: randBubble()};
-    }
-
-    function canMove(r,c){
+    function canOccupy(r,c){
       return r>=0 && r<ROWS && c>=0 && c<COLS && grid[r][c] === null;
     }
 
-    function tryMove(dx){
-      if(!running || !current || pausedForQuestion || clearingCells.size) return;
-      const nc = current.c + dx;
-      if(canMove(current.r, nc)){
-        current.c = nc;
-      }
+    function spawn(){
+      const c = Math.floor(COLS/2);
+      if(grid[0][c]){ reset("Game Over – Neustart"); return; }
+      current = {col: c, y: 0, bubble: randBubble()};
     }
 
     function lockCurrent(){
-      grid[current.r][current.c] = current.bubble;
+      const r = Math.round(current.y);
+      grid[r][current.col] = current.bubble;
       current = null;
 
       const matches = findMatches();
@@ -548,81 +278,78 @@
       }
     }
 
-    function stepDown(){
-      if(!running || !current || pausedForQuestion || clearingCells.size) return;
-      const nr = current.r + 1;
-      if(nr < ROWS && canMove(nr, current.c)){
-        current.r = nr;
-      }else{
-        lockCurrent();
-      }
-    }
-
     function hardDrop(){
       if(!running || !current || pausedForQuestion || clearingCells.size) return;
+      let r = Math.floor(current.y);
       while(true){
-        const nr = current.r + 1;
-        if(nr < ROWS && canMove(nr, current.c)){
-          current.r = nr;
-        }else break;
+        const nr = r + 1;
+        if(nr < ROWS && canOccupy(nr, current.col)) r = nr;
+        else break;
       }
+      current.y = r;
       lockCurrent();
     }
 
-    // ====== Matching: 5 in a line ======
+    function setColumnFromX(clientX){
+      if(!running || !current || pausedForQuestion || clearingCells.size) return;
+      const rect = cv.getBoundingClientRect();
+      const x = Math.max(0, Math.min(rect.width - 1, clientX - rect.left));
+      const targetCol = Math.max(0, Math.min(COLS-1, Math.floor((x / rect.width) * COLS)));
+
+      // stepwise slide toward target; stop if blocked
+      const rowNow = Math.round(current.y);
+      while(current.col < targetCol){
+        if(canOccupy(rowNow, current.col + 1)) current.col++;
+        else break;
+      }
+      while(current.col > targetCol){
+        if(canOccupy(rowNow, current.col - 1)) current.col--;
+        else break;
+      }
+    }
+
+    // ====== Matching (5 in a line) ======
     function findMatches(){
       const marked = new Set();
-
-      // helper to mark a segment
-      function markCells(cells){
-        for(const [r,c] of cells){
-          marked.add(`${r},${c}`);
-        }
-      }
+      const markCells = (cells) => { for(const [r,c] of cells) marked.add(`${r},${c}`); };
 
       // horizontal
       for(let r=0;r<ROWS;r++){
-        let run = [];
-        let lastId = null;
+        let run=[], lastId=null;
         for(let c=0;c<COLS;c++){
-          const cell = grid[r][c];
-          const id = cell ? cell.id : null;
-          if(id && id === lastId){
-            run.push([r,c]);
-          }else{
-            if(run.length >= LINE) markCells(run);
+          const id = grid[r][c]?.id ?? null;
+          if(id && id===lastId) run.push([r,c]);
+          else{
+            if(run.length>=LINE) markCells(run);
             run = id ? [[r,c]] : [];
             lastId = id;
           }
         }
-        if(run.length >= LINE) markCells(run);
+        if(run.length>=LINE) markCells(run);
       }
 
       // vertical
       for(let c=0;c<COLS;c++){
-        let run = [];
-        let lastId = null;
+        let run=[], lastId=null;
         for(let r=0;r<ROWS;r++){
-          const cell = grid[r][c];
-          const id = cell ? cell.id : null;
-          if(id && id === lastId){
-            run.push([r,c]);
-          }else{
-            if(run.length >= LINE) markCells(run);
+          const id = grid[r][c]?.id ?? null;
+          if(id && id===lastId) run.push([r,c]);
+          else{
+            if(run.length>=LINE) markCells(run);
             run = id ? [[r,c]] : [];
             lastId = id;
           }
         }
-        if(run.length >= LINE) markCells(run);
+        if(run.length>=LINE) markCells(run);
       }
 
       if(ALLOW_DIAGONAL){
         // diag down-right (\)
-        for(let startR=0; startR<ROWS; startR++){
-          let r=startR, c=0, run=[], lastId=null;
+        for(let sr=0; sr<ROWS; sr++){
+          let r=sr,c=0,run=[],lastId=null;
           while(r<ROWS && c<COLS){
-            const cell = grid[r][c]; const id = cell ? cell.id : null;
-            if(id && id===lastId){ run.push([r,c]); }
+            const id = grid[r][c]?.id ?? null;
+            if(id && id===lastId) run.push([r,c]);
             else{
               if(run.length>=LINE) markCells(run);
               run = id ? [[r,c]] : [];
@@ -632,11 +359,11 @@
           }
           if(run.length>=LINE) markCells(run);
         }
-        for(let startC=1; startC<COLS; startC++){
-          let r=0, c=startC, run=[], lastId=null;
+        for(let sc=1; sc<COLS; sc++){
+          let r=0,c=sc,run=[],lastId=null;
           while(r<ROWS && c<COLS){
-            const cell = grid[r][c]; const id = cell ? cell.id : null;
-            if(id && id===lastId){ run.push([r,c]); }
+            const id = grid[r][c]?.id ?? null;
+            if(id && id===lastId) run.push([r,c]);
             else{
               if(run.length>=LINE) markCells(run);
               run = id ? [[r,c]] : [];
@@ -648,11 +375,11 @@
         }
 
         // diag down-left (/)
-        for(let startR=0; startR<ROWS; startR++){
-          let r=startR, c=COLS-1, run=[], lastId=null;
+        for(let sr=0; sr<ROWS; sr++){
+          let r=sr,c=COLS-1,run=[],lastId=null;
           while(r<ROWS && c>=0){
-            const cell = grid[r][c]; const id = cell ? cell.id : null;
-            if(id && id===lastId){ run.push([r,c]); }
+            const id = grid[r][c]?.id ?? null;
+            if(id && id===lastId) run.push([r,c]);
             else{
               if(run.length>=LINE) markCells(run);
               run = id ? [[r,c]] : [];
@@ -662,11 +389,11 @@
           }
           if(run.length>=LINE) markCells(run);
         }
-        for(let startC=COLS-2; startC>=0; startC--){
-          let r=0, c=startC, run=[], lastId=null;
+        for(let sc=COLS-2; sc>=0; sc--){
+          let r=0,c=sc,run=[],lastId=null;
           while(r<ROWS && c>=0){
-            const cell = grid[r][c]; const id = cell ? cell.id : null;
-            if(id && id===lastId){ run.push([r,c]); }
+            const id = grid[r][c]?.id ?? null;
+            if(id && id===lastId) run.push([r,c]);
             else{
               if(run.length>=LINE) markCells(run);
               run = id ? [[r,c]] : [];
@@ -684,41 +411,109 @@
     function applyClear(){
       if(!clearingCells.size) return;
 
-      // Remove marked cells
       for(const key of clearingCells){
         const [rS,cS] = key.split(",");
-        const r = parseInt(rS,10), c = parseInt(cS,10);
-        grid[r][c] = null;
+        grid[+rS][+cS] = null;
       }
 
-      // Gravity: collapse each column down
+      // gravity
       for(let c=0;c<COLS;c++){
-        const stack = [];
-        for(let r=ROWS-1;r>=0;r--){
-          if(grid[r][c]) stack.push(grid[r][c]);
-        }
-        for(let r=ROWS-1;r>=0;r--){
-          grid[r][c] = stack[ROWS-1-r] || null;
-        }
+        const stack=[];
+        for(let r=ROWS-1;r>=0;r--) if(grid[r][c]) stack.push(grid[r][c]);
+        for(let r=ROWS-1;r>=0;r--) grid[r][c] = stack[ROWS-1-r] || null;
       }
 
-      // Award letters: 1 letter per cleared "line of 5" (approx)
-      // For simplicity: each 5 cleared cells = 1 letter (works well for prototype)
       const gained = Math.max(1, Math.floor(clearingCells.size / LINE));
       letters = Math.min(TARGET.length, letters + gained);
       renderWord();
 
       clearingCells = new Set();
+      if(letters >= TARGET.length) pausedForQuestion = true;
+      if(!pausedForQuestion) spawn();
+    }
 
-      if(letters >= TARGET.length){
-        pausedForQuestion = true;
+    // ====== Drawing ======
+    function drawGrid(){
+      const s = cellSize();
+      ctx.save();
+      ctx.globalAlpha = 0.20;
+      ctx.strokeStyle = "rgba(148,163,184,.25)";
+      for(let r=0;r<=ROWS;r++){
+        ctx.beginPath(); ctx.moveTo(0, r*s); ctx.lineTo(COLS*s, r*s); ctx.stroke();
       }
-      if(!pausedForQuestion){
-        spawn();
+      for(let c=0;c<=COLS;c++){
+        ctx.beginPath(); ctx.moveTo(c*s, 0); ctx.lineTo(c*s, ROWS*s); ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawBubbleAt(cx, cy, bubble, radius, glow=1, flash=0){
+      ctx.save();
+      const alpha = 0.55*glow + flash*0.35;
+      ctx.shadowColor = `hsla(${bubble.hue}, 95%, 60%, ${alpha})`;
+      ctx.shadowBlur = 14*glow + flash*22;
+
+      const g = ctx.createRadialGradient(cx - radius*0.35, cy - radius*0.35, radius*0.2, cx, cy, radius*1.1);
+      g.addColorStop(0, `hsla(${bubble.hue}, 95%, ${92 + flash*6}%, 1)`);
+      g.addColorStop(0.35, `hsla(${bubble.hue}, 92%, ${60 + flash*8}%, 1)`);
+      g.addColorStop(1, `hsla(${bubble.hue}, 92%, 38%, 1)`);
+
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2); ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = "rgba(248,250,252,.35)";
+      ctx.lineWidth = Math.max(1, radius*0.06);
+      ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2); ctx.stroke();
+
+      ctx.globalAlpha = 0.28 + flash*0.35;
+      ctx.fillStyle = "white";
+      ctx.beginPath(); ctx.arc(cx - radius*0.28, cy - radius*0.28, radius*0.22, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+
+      if(bubble.icon){
+        ctx.fillStyle = "rgba(2,6,23,.92)";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = `900 ${Math.floor(radius*0.95)}px system-ui, Apple Color Emoji, Segoe UI Emoji`;
+        ctx.fillText(bubble.icon, cx, cy+1);
+      }
+
+      ctx.restore();
+    }
+
+    function draw(ts=0){
+      resizeCanvasToDisplay();
+      ctx.clearRect(0,0,cv.width,cv.height);
+
+      const s = cellSize();
+      const radius = s*0.44;
+
+      drawGrid();
+
+      let flash = 0;
+      if(clearingCells.size) flash = 0.35 + 0.35*Math.sin(ts/80);
+
+      for(let r=0;r<ROWS;r++){
+        for(let c=0;c<COLS;c++){
+          const b = grid[r][c];
+          if(!b) continue;
+          const key = `${r},${c}`;
+          const isClearing = clearingCells.has(key);
+          const cx = c*s + s/2;
+          const cy = r*s + s/2;
+          drawBubbleAt(cx, cy, b, radius, isClearing ? 1.35 : 0.85, isClearing ? flash : 0);
+        }
+      }
+
+      if(current){
+        const cx = current.col*s + s/2;
+        const cy = current.y*s + s/2;
+        drawBubbleAt(cx, cy, current.bubble, radius, 1.15, 0);
       }
     }
 
-    // ====== Question ======
+    // ====== Question modal ======
     function openQuestion(){
       if(letters < TARGET.length) return;
       answersEl.innerHTML = "";
@@ -756,60 +551,98 @@
     }
     closeBtn.addEventListener("click", () => modal.classList.remove("show"));
 
-    // ====== Controls ======
-    document.getElementById("leftBtn").addEventListener("click", () => tryMove(-1));
-    document.getElementById("rightBtn").addEventListener("click", () => tryMove(1));
-    document.getElementById("dropBtn").addEventListener("click", () => hardDrop());
+    // ====== Input (touch-first) ======
+    let startX=0, startY=0;
+    let downSwipeActive = false;
 
-    // Touch: swipe L/R to move, tap to drop
-    let startX=0, startY=0, lastMoveTs=0;
     cv.addEventListener("pointerdown", (e) => {
       cv.setPointerCapture(e.pointerId);
       startX = e.clientX;
       startY = e.clientY;
-      lastMoveTs = performance.now();
-      cv.focus({preventScroll:true});
+      downSwipeActive = false;
+      softDrop = false;
+      setColumnFromX(e.clientX); // follow full width immediately
     });
+
     cv.addEventListener("pointermove", (e) => {
       if(!running || !current || pausedForQuestion || clearingCells.size) return;
-      const dx = e.clientX - startX;
-      const now = performance.now();
-      if(Math.abs(dx) > 22 && now - lastMoveTs > 70){
-        tryMove(dx > 0 ? 1 : -1);
-        startX = e.clientX;
-        lastMoveTs = now;
-      }
+      setColumnFromX(e.clientX);
+      const dy = e.clientY - startY;
+      softDrop = dy > 28;
+      downSwipeActive = softDrop;
     });
+
     cv.addEventListener("pointerup", (e) => {
       const dx = Math.abs(e.clientX - startX);
       const dy = Math.abs(e.clientY - startY);
-      if(dx < 10 && dy < 10){
-        hardDrop();
+      const isTap = dx < 10 && dy < 10 && !downSwipeActive;
+      softDrop = false;
+      downSwipeActive = false;
+      if(isTap) hardDrop();
+    });
+
+    // ====== Smooth fall physics ======
+    function cellsPerSecond(){
+      const base = 1.6;                  // smooth base speed (cells/s)
+      const bonus = Math.min(0.9, letters*0.08);
+      const normal = base + bonus;
+      return softDrop ? normal*6.0 : normal;
+    }
+
+    function trySetY(yCandidate){
+      if(yCandidate >= ROWS-1){
+        current.y = ROWS-1;
+        lockCurrent();
+        return false;
       }
-    });
 
-    // Start button
-    startBtn.addEventListener("click", () => {
-      startOverlay.style.display = "none";
-      running = true;
-      cv.focus({preventScroll:true});
-    });
+      // if we crossed into a new row, check that cell
+      const fromRow = Math.floor(current.y);
+      const toRow = Math.floor(yCandidate);
+      if(toRow == fromRow){
+        current.y = yCandidate;
+        return true;
+      }
 
-    // Loop
+      // entering next row
+      if(canOccupy(toRow, current.col)){
+        current.y = yCandidate;
+        return true;
+      }else{
+        current.y = fromRow;
+        lockCurrent();
+        return false;
+      }
+    }
+
+    function physicsStep(dt){
+      if(!running) return;
+
+      if(!current && !pausedForQuestion && !clearingCells.size) spawn();
+
+      if(clearingCells.size){
+        if(performance.now() >= clearUntilTs) applyClear();
+        return;
+      }
+      if(!current || pausedForQuestion) return;
+
+      const v = cellsPerSecond();
+      let newY = current.y + v*dt;
+
+      // clamp dt and move in small chunks to avoid skipping collisions
+      const maxChunk = 0.35; // rows
+      while(newY - current.y > maxChunk){
+        if(!trySetY(current.y + maxChunk)) return;
+      }
+      trySetY(newY);
+    }
+
     function loop(ts){
-      if(running){
-        if(!current && !pausedForQuestion && !clearingCells.size) spawn();
+      if(!lastTs) lastTs = ts;
+      const dt = Math.min(0.033, (ts - lastTs) / 1000);
+      lastTs = ts;
 
-        if(clearingCells.size && performance.now() >= clearUntilTs){
-          applyClear();
-        }
-
-        const interval = currentIntervalMs();
-        if(ts - lastStep > interval && !pausedForQuestion && !clearingCells.size){
-          stepDown();
-          lastStep = ts;
-        }
-      }
+      physicsStep(dt);
       draw(ts);
       requestAnimationFrame(loop);
     }
@@ -819,11 +652,17 @@
       current = null;
       letters = 0;
       pausedForQuestion = false;
+      softDrop = false;
       clearingCells = new Set();
+      clearUntilTs = 0;
       renderWord();
-      draw(performance.now());
       if(msg) alert(msg);
     }
+
+    startBtn.addEventListener("click", () => {
+      startOverlay.style.display = "none";
+      running = true;
+    });
 
     window.addEventListener("resize", () => draw(performance.now()));
     draw(performance.now());
